@@ -1,7 +1,36 @@
 import cirq
 
 # function 1: def exp_value(n_00, n_11, n_01, n_10) -> calculates expected value or E(x, y)
+#n_00= number of times Alice measured 0 and Bob measured 0
+#n_11= number of times Alice measured 1 and Bob measured 1
+#n_10= number of times Alice measured 1 and Bob measured 0
+#n_01= number of times Alice measured 0 and Bob measured 1
+def exp_value(n_00,n_11,n_01,n_10):
+
+    #calculate the total number of measurements taken
+    total_measurements=n_00+n_11+n_01+n_10
+
+    #avoids dividing by zero if no measurements taken 
+    if total_measurements==0:
+        return 0
+    
+    #Apply correlation value formula:
+    #E(x,y)=(n_00+n_11-n_01-n_10)/(n_00+n_11+n_01+n_10)
+    correlation=(n_00+n_11-n_01-n_10)/total_measurements
+    return correlation
+
+
 # function 2: def chsh_value(x, y, z, d) --> calculates CHSH value
+#x= E(A,B)
+#y= E(A,B')
+#z= E(A',B)
+#d= E(A',B')
+def chsh_value(x,y,z,d):
+    #Apply CHSH inequality formula:
+    #S=|E(A,B) + E(A,B') + E(A',B) - E(A',B')|
+    S=abs(x+y+z-d)
+    return S
+
 
 #first entangled circuit with A, B
 #second entangled circuit with A, B'
