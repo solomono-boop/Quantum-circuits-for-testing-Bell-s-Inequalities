@@ -1,21 +1,17 @@
 import cirq
+import matplotlib.pyplot as plt
 
 # function 1: def exp_value(n_00, n_11, n_01, n_10) -> calculates expected value or E(x, y)
-
 #n_11= number of times Alice measured 1 and Bob measured 1
 #n_10= number of times Alice measured 1 and Bob measured 0
 #n_01= number of times Alice measured 0 and Bob measured 1
 #n_00= number of times Alice measured 0 and Bob measured 0
-
 def exp_value(n_00,n_11,n_01,n_10):
-
     #calculate the total number of measurements taken
     total_measurements=n_00+n_11+n_01+n_10
-
     #avoids dividing by zero if no measurements taken 
     if total_measurements==0:
         return 0
-    
     #Apply correlation value formula:
     #E(x,y)=(n_00+n_11-n_01-n_10)/(n_00+n_11+n_01+n_10)
     correlation=(n_00+n_11-n_01-n_10)/total_measurements
@@ -32,6 +28,25 @@ def chsh_value(x,y,z,d):
     S=abs(x+y+z-d)
     return S
 
+#runs simulations on the circuit 
+def sim_run(circuit, reps):
+    simulator = cirq.Simulator()
+    result = simulator.run(circuit, repetitions=reps)
+    count = result.histogram(key="result")
+    #next line creates histogram, commented out for now
+    #hist = cirq.plot_state_histogram(result, plt.subplot(), title = 'Qubit States', xlabel = 'States', ylabel = 'Occurrences')
+    plt.show()
+    return count
+
+#def get_exp_value(count_of_each_value) 
+#n_11 = count..*(+1)
+#n_01 = count..*(-1)
+#n_00 = count..*(+1)
+#n_10 = count..*(-1)
+#call exp_value function apply to the circuit
+#store the exp_values for the circuit
+#return value should be exp_value of the circuit
+
 #first entangled circuit with A, B
 a = cirq.NamedQubit("q0")
 b = cirq.NamedQubit("q1")
@@ -39,7 +54,7 @@ circuit1 = cirq.Circuit()
 circuit1.append(cirq.H(a))
 circuit1.append(cirq.CNOT(a, b))
 circuit1.append((cirq.Y ** 0.25)(b))
-circuit1.append(cirq.measure(a,b))
+circuit1.append(cirq.measure(a,b, key="result"))
 
 #second entangled circuit with A, B'
 a = cirq.NamedQubit("q0")
@@ -48,7 +63,7 @@ circuit2 = cirq.Circuit()
 circuit2.append(cirq.H(a))
 circuit2.append(cirq.CNOT(a, b_dash))
 circuit2.append((cirq.Y ** (-0.25))(b_dash))
-circuit2.append(cirq.measure(a, b_dash))
+circuit2.append(cirq.measure(a, b_dash, key="result"))
 
 #third entangled circuit with A', B
 a_dash = cirq.NamedQubit("q0")
@@ -57,7 +72,7 @@ circuit3 = cirq.Circuit()
 circuit3.append(cirq.H(a_dash))
 circuit3.append(cirq.CNOT(a_dash, b))
 circuit3.append((cirq.Y ** (0.5))(a_dash))
-circuit3.append(cirq.measure(a_dash, b))
+circuit3.append(cirq.measure(a_dash, b, key="result"))
 
 #fourth entangled circuit with A', B'
 a_dash = cirq.NamedQubit("q0")
@@ -67,16 +82,7 @@ circuit4.append(cirq.H(a_dash))
 circuit4.append(cirq.CNOT(a_dash, b_dash))
 circuit4.append((cirq.Y ** (0.5))(a_dash))
 circuit4.append((cirq.Y ** (-0.25))(b_dash))
-circuit4.append(cirq.measure(a_dash, b_dash))
+circuit4.append(cirq.measure(a_dash, b_dash, key="result"))
 
-#run simulations on the circuit 
-#create histogram on each qubit value
-#n_11 = count_through the histogram*(+1)
-#n_01 = count_through the histogram*(-1)
-#n_00 = count_through the histogram*(+1)
-#n_10 = count_through the histogram*(-1)
-#call exp_value function apply to the circuit
-#store the exp_values for the circuit
-#do lines 11-17 4 times for each circuit
 
 #call chsh function using each exp_value
