@@ -69,10 +69,13 @@ def plot_measurement_histogram(counts,title):
         occurances=[counts.get(0,0),counts.get(1,0),counts.get(2,0),counts.get(3,0),]
     
         #creating histogram:
+        plt.figure(figsize=(9.8, 7.35))
         plt.bar(states,occurances,color="#ff69b4")
-        plt.xlabel("Measurement State (Alice,Bob)")
-        plt.ylabel("Occurances")
-        plt.title(title) #i did this so that way we could clarify each time what graph it was showing with a different title :)
+        plt.xlabel("Measurement State (Alice,Bob)",fontsize=20)
+        plt.ylabel("Occurances",fontsize=20)
+        plt.title(title,fontsize=30) #i did this so that way we could clarify each time what graph it was showing with a different title :)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
         plt.show()
 
 #def get_exp_value(count_of_each_value) 
@@ -86,6 +89,26 @@ def get_exp_value(counts):
     n_10=counts.get(2,0)
     n_11=counts.get(3,0)
     return exp_value(n_00,n_11,n_01,n_10)
+
+# calculates standard deviation/error of CHSH values from repeated simulations
+def chsh_error(circuits, repetitions, trials=20):
+    values=[]
+    for i in range(trials):
+        counts1=sim_run(circuits[0], repetitions)
+        counts2=sim_run(circuits[1], repetitions)
+        counts3=sim_run(circuits[2], repetitions)
+        counts4=sim_run(circuits[3], repetitions)
+
+        E_AB=get_exp_value(counts1)
+        E_AB_prime=get_exp_value(counts2)
+        E_A_prime_B=get_exp_value(counts3)
+        E_A_prime_B_prime=get_exp_value(counts4)
+
+        S=chsh_value(E_AB,E_AB_prime,E_A_prime_B,E_A_prime_B_prime)
+
+        values.append(S)
+
+    return np.mean(values), np.std(values)
  
 
 #first entangled circuit with A, B
@@ -237,7 +260,7 @@ for reps in rep_values:
     print("CHSH value: ",S)
     print("---------------")
 
-#noise expirement
+#noise expirement (Commented out for now)
 print()
 print("Noise Expirement")
 print("--------------------")
@@ -246,8 +269,7 @@ for noise in noise_values:
     noisy1=add_noise(circuit1,noise)
     noisy2=add_noise(circuit2,noise)
     noisy3=add_noise(circuit3,noise)
-    noisy4=add_noise(circuit4,noise)
-
+    noisy4=add_noise(circuit4,noise)       
     counts1=sim_run(noisy1,reps)
     counts2=sim_run(noisy2,reps)
     counts3=sim_run(noisy3,reps)
@@ -288,26 +310,52 @@ for state in starting_states:
     print("CHSH Value: ",S)
 
 
-#Create CHSH vs reps graph
-plt.plot(rep_values,chsh_results,marker="*",color="#ff69b4",label="Simulated CHSH value")
-plt.axhline(y=2,color="#3D3D3D",linestyle="--",label="Classical Limit of 2")
-plt.axhline(y=2*np.sqrt(2),color="#898989",linestyle="--",label="Tsirelson's bound (2√2)")
-plt.title("CHSH Value vs Number of Measurement")
-plt.xlabel("Number of repeititions")
-plt.ylabel("CHSH value")
-plt.legend()
+# CHSH vs Repetitions graph (with error bars) 
+
+rep_values=[50,100,500,1000,2500,5000]
+chsh_means=[]
+chsh_errors=[]
+for reps in rep_values:
+
+    mean,error=chsh_error(
+        [circuit1,circuit2,circuit3,circuit4],
+       reps
+       )
+
+    chsh_means.append(mean)
+    chsh_errors.append(error)
+plt.figure(figsize=(10.24, 7.68))
+#Error bars (lighter pink)
+
+plt.errorbar(rep_values,chsh_means,yerr=chsh_errors,fmt="none",ecolor="#ffa2d0",alpha=0.7,capsize=5,linewidth=2)
+
+# Data points (pink stars)
+plt.plot(rep_values,chsh_means,marker="*",color="#ff69b4",linestyle="none",markersize=10,label="Simulated CHSH value")
+
+plt.axhline(y=2,color="#3D3D3D",linestyle="--",label="Classical Limit (2)")
+plt.axhline(y=2*np.sqrt(2),color="#898989",linestyle="--",label="Tsirelson's Bound (2√2)")
+plt.title("CHSH Value vs Number of Repetitions",fontsize=30)
+plt.xlabel("Number of Repetitions",fontsize=20)
+plt.ylabel("CHSH Value",fontsize=20)
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.legend(fontsize=17.5)
+plt.tight_layout()
 plt.show()
 
 
 #Create CHSH vs noise graph
-plt.figure() #adds new plot for this
+plt.figure(figsize=(10.24, 7.68)) #adds new plot for this
 plt.plot(noise_values,noise_results,marker="*",color="#ff69b4",label="Simulated CHSH value")
 plt.axhline(y=2,color="#3D3D3D",linestyle="--", label="Classical Limit (2)")
 plt.axhline(y=2*np.sqrt(2),color="#898989",linestyle="--", label="Tsirelson's Bound (2√2)")
-plt.title("CHSH Value vs Noise")
-plt.xlabel("Noise Probability")
-plt.ylabel("CHSH Value")
-plt.legend()
+plt.title("CHSH Value vs Noise",fontsize=30)
+plt.xlabel("Noise Probability",fontsize=20)
+plt.ylabel("CHSH Value",fontsize=20)
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.legend(fontsize=17.5)
+plt.tight_layout()
 plt.show()
 
 #Simple measurement circuit histogram plot
@@ -315,22 +363,25 @@ plt.show()
 histogram_reps=2500 #just in case we wanted reps something else at a different place i made another variable just for this here
 #running circuit (w/o noise)
 hist_counts1=sim_run(circuit1,histogram_reps)
-hist_counts2=sim_run(circuit2,histogram_reps)
-hist_counts3=sim_run(circuit3,histogram_reps)
-hist_counts4=sim_run(circuit4,histogram_reps)
+#right now I have all the simulations below commented out so I only get one plot per expirement :)
+#hist_counts2=sim_run(circuit2,histogram_reps)
+#hist_counts3=sim_run(circuit3,histogram_reps)
+#hist_counts4=sim_run(circuit4,histogram_reps)
 #plot results 
 plot_measurement_histogram(hist_counts1,"Measurement Results: E(A,B)")
-plot_measurement_histogram(hist_counts2,"Measurement Results: E(A,B')")
-plot_measurement_histogram(hist_counts3,"Measurement Results: E(A',B)")
-plot_measurement_histogram(hist_counts4,"Measurement Results: E(A',B')")
+#plot_measurement_histogram(hist_counts2,"Measurement Results: E(A,B')")
+#plot_measurement_histogram(hist_counts3,"Measurement Results: E(A',B)")
+#plot_measurement_histogram(hist_counts4,"Measurement Results: E(A',B')")
 
 #Create different starting state plot
-plt.figure()
+plt.figure(figsize=(9.8, 7.35))
 plt.bar(starting_states,starting_state_results,color="#ff69b4")
 plt.axhline(y=2,color="#3D3D3D", linestyle="--", label="Classical Limit (2)")
 plt.axhline(y=2*np.sqrt(2),color="#898989",linestyle="--",label="Tsirelson's bound (2√2)")
-plt.xlabel("Initial State")
-plt.ylabel("CHSH Value (S)")
-plt.title("CHSH Value for Different Initial States")
-plt.legend()
+plt.xlabel("Initial State",fontsize=20)
+plt.ylabel("CHSH Value (S)",fontsize=20)
+plt.title("CHSH Value for Different Initial States",fontsize=30)
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+plt.legend(fontsize=17.5)
 plt.show()
